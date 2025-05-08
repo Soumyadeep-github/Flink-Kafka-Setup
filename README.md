@@ -90,13 +90,13 @@ A comprehensive setup for Apache Flink and Kafka integration with Kubernetes dep
 
 ## Features
 
-- Real-time data processing with Apache Flink
-- Kafka integration for message streaming
-- RocksDB state backend for state management
-- Kubernetes deployment support
-- Helm charts for easy deployment
-- Terraform infrastructure as code
-- Python-based data generation utilities
+- Real-time data processing with Apache Flink (DONE)
+- Kafka integration for message streaming (DONE)
+- RocksDB state backend for state management (DONE)
+- Kubernetes deployment support (DONE)
+- Helm charts for easy deployment (DONE)
+- Terraform infrastructure as code (WIP)
+- Python-based data generation utilities (DONE)
 
 ## Architecture
 
