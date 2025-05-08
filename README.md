@@ -5,13 +5,13 @@ A comprehensive setup for Apache Flink and Kafka integration with Kubernetes dep
 ## Project Structure
 ```
 .
-├── helm-chart/ # Helm charts for Kubernetes deployment
-├── src/ # Source code
-│ ├── main/java/ # Java source files
-│ └── test/ # Test files
-├── terraform/ # Infrastructure as Code using Terraform
-├── pom.xml # Maven project configuration
-├── requirements.txt # Python dependencies
+├── helm-chart/ 
+├── src/ 
+│ ├── main/java/ 
+│ └── main/python/data_generator
+├── terraform/ 
+├── pom.xml 
+├── requirements.txt 
 └── commands.sh # Utility commands
 ```
 
@@ -64,6 +64,28 @@ A comprehensive setup for Apache Flink and Kafka integration with Kubernetes dep
 
    # Check Flink deployment
    kubectl get pods -n kafka-k8s -l app=flink-jobmanager
+   ```
+4. **Post Deployment**
+   ```bash
+   # Create user_activities topic
+    kubectl exec -it kafka-0 -n kafka-k8s -- /bin/kafka-topics --create \
+    --topic user_activities \
+    --partitions 3 \
+    --replication-factor 3 \
+    --bootstrap-server localhost:9092
+
+   # Create transactions topic
+    kubectl exec -it kafka-0 -n kafka-k8s -- /bin/kafka-topics --create \
+    --topic transactions \
+    --partitions 3 \
+    --replication-factor 3 \
+    --bootstrap-server localhost:9092
+
+   # Exposes the broker to external traffic
+   kubectl port-forward -n kafka-k8s svc/kafka-external 9093:9092
+
+   # Exposes the Flink UI
+   kubectl port-forward -n kafka-k8s svc/flink-jobmanager 8082:8081
    ```
 
 ## Features
