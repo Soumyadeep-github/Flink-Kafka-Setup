@@ -3,6 +3,7 @@
 A comprehensive setup for Apache Flink and Kafka integration with Kubernetes deployment support. This project demonstrates real-time data processing using Flink with Kafka as the message broker, deployed on Kubernetes using Helm charts.
 
 ## Project Structure
+```
 .
 ├── helm-chart/ # Helm charts for Kubernetes deployment
 ├── src/ # Source code
@@ -12,6 +13,7 @@ A comprehensive setup for Apache Flink and Kafka integration with Kubernetes dep
 ├── pom.xml # Maven project configuration
 ├── requirements.txt # Python dependencies
 └── commands.sh # Utility commands
+```
 
 
 ## Prerequisites
