@@ -1,0 +1,79 @@
+{{- if .Values.flink.enabled }}
+# JobManager Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flink-jobmanager
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: {{ .Values.flink.jobmanager.replicas }}
+  selector:
+    matchLabels:
+      app: flink-jobmanager
+  template:
+    metadata:
+      labels:
+        app: flink-jobmanager
+    spec:
+      containers:
+      - name: jobmanager
+        image: "{{ .Values.flink.image }}:{{ .Values.flink.tag }}"
+        command: ["/docker-entrypoint.sh"]
+        args: ["jobmanager"]
+        ports:
+        - containerPort: 8081
+        - containerPort: 6123
+        env:
+        - name: JOB_MANAGER_RPC_ADDRESS
+          value: "0.0.0.0"
+        - name: JOB_MANAGER_RPC_PORT
+          value: "6123"
+        resources:
+          {{- toYaml .Values.flink.jobmanager.resources | nindent 10 }}
+---
+# JobManager Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: flink-jobmanager
+  namespace: {{ .Values.global.namespace }}
+spec:
+  selector:
+    app: flink-jobmanager
+  ports:
+  - name: jobmanager
+    port: 8081
+    targetPort: 8081
+  - name: rpc
+    port: 6123
+    targetPort: 6123
+---
+# TaskManager Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flink-taskmanager
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: {{ .Values.flink.taskmanager.replicas }}
+  selector:
+    matchLabels:
+      app: flink-taskmanager
+  template:
+    metadata:
+      labels:
+        app: flink-taskmanager
+    spec:
+      containers:
+      - name: taskmanager
+        image: "{{ .Values.flink.image }}:{{ .Values.flink.tag }}"
+        command: ["/docker-entrypoint.sh"]
+        args: ["taskmanager"]
+        env:
+        - name: JOB_MANAGER_RPC_ADDRESS
+          value: "flink-jobmanager.kafka-k8s.svc.cluster.local"
+        - name: JOB_MANAGER_RPC_PORT
+          value: "6123"
+        resources:
+          {{- toYaml .Values.flink.taskmanager.resources | nindent 10 }}
+{{- end }} 

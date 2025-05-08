@@ -1,0 +1,119 @@
+{{- if .Values.kafka.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: kafka
+  namespace: {{ .Values.global.namespace }}
+spec:
+  serviceName: kafka
+  replicas: {{ .Values.kafka.replicas }}
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      securityContext:
+        fsGroup: 1000
+      initContainers:
+      - name: init-chown-data
+        image: busybox
+        command: ["sh", "-c", "chown -R 1000:1000 /var/lib/kafka/data"]
+        securityContext:
+          privileged: true
+          runAsUser: 0
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/kafka/data
+      containers:
+      - name: kafka
+        image: "{{ .Values.kafka.image }}:{{ .Values.kafka.tag }}"
+        command:
+        - sh
+        - -c
+        - |
+          ORDINAL=$(echo $POD_NAME | grep -o '[0-9]*$')
+          export KAFKA_NODE_ID=$ORDINAL
+          /etc/confluent/docker/run
+        ports:
+        {{- range .Values.kafka.ports }}
+        - name: {{ .name }}
+          containerPort: {{ .targetPort }}
+        {{- end }}
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KAFKA_PROCESS_ROLES
+          value: "{{ .Values.kafka.config.processRoles }}"
+        - name: KAFKA_CONTROLLER_QUORUM_VOTERS
+          value: "{{ .Values.kafka.config.controllerQuorumVoters }}"
+        - name: KAFKA_LISTENERS
+          value: "{{ .Values.kafka.config.listeners }}"
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: "PLAINTEXT://$(POD_NAME).kafka.{{ .Values.global.namespace }}.svc.cluster.local:29092,PLAINTEXT_HOST://localhost:9092"
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: "{{ .Values.kafka.config.listenerSecurityProtocolMap }}"
+        - name: KAFKA_CONTROLLER_LISTENER_NAMES
+          value: "{{ .Values.kafka.config.controllerListenerNames }}"
+        - name: KAFKA_INTER_BROKER_LISTENER_NAME
+          value: "{{ .Values.kafka.config.interBrokerListenerName }}"
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+          value: "{{ .Values.kafka.config.offsetsTopicReplicationFactor }}"
+        - name: KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS
+          value: "{{ .Values.kafka.config.groupInitialRebalanceDelayMs }}"
+        - name: KAFKA_TRANSACTION_STATE_LOG_MIN_ISR
+          value: "{{ .Values.kafka.config.transactionStateLogMinIsr }}"
+        - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+          value: "{{ .Values.kafka.config.transactionStateLogReplicationFactor }}"
+        - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
+          value: "{{ .Values.kafka.config.autoCreateTopicsEnable }}"
+        - name: CLUSTER_ID
+          value: "{{ .Values.kafka.config.clusterId }}"
+        resources:
+          {{- toYaml .Values.kafka.resources | nindent 10 }}
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/kafka/data
+      volumes:
+      - name: data
+        {{- if .Values.kafka.persistence.enabled }}
+        persistentVolumeClaim:
+          claimName: kafka-data-{{ .Release.Name }}
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+---
+{{- if .Values.kafka.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kafka-data-{{ .Release.Name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.kafka.persistence.size }}
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: {{ .Values.global.namespace }}
+spec:
+  clusterIP: None
+  selector:
+    app: kafka
+  ports:
+  {{- range .Values.kafka.ports }}
+  - name: {{ .name }}
+    port: {{ .port }}
+    targetPort: {{ .targetPort }}
+  {{- end }}
+{{- end }} 

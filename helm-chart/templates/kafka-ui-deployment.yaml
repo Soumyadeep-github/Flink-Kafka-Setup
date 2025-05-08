@@ -1,0 +1,42 @@
+{{- if .Values.kafkaUI.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-ui
+  namespace: {{ .Values.global.namespace }}
+spec:
+  replicas: {{ .Values.kafkaUI.replicas }}
+  selector:
+    matchLabels:
+      app: kafka-ui
+  template:
+    metadata:
+      labels:
+        app: kafka-ui
+    spec:
+      containers:
+      - name: kafka-ui
+        image: "{{ .Values.kafkaUI.image }}:{{ .Values.kafkaUI.tag }}"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KAFKA_CLUSTERS_0_NAME
+          value: local
+        - name: KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS
+          value: "kafka-0.kafka.{{ .Values.global.namespace }}.svc.cluster.local:29092,kafka-1.kafka.{{ .Values.global.namespace }}.svc.cluster.local:29092,kafka-2.kafka.{{ .Values.global.namespace }}.svc.cluster.local:29092"
+        resources:
+          {{- toYaml .Values.kafkaUI.resources | nindent 10 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-ui
+  namespace: {{ .Values.global.namespace }}
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: kafka-ui
+{{- end }} 

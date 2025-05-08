@@ -1,0 +1,72 @@
+global:
+  namespace: kafka-k8s
+
+kafka:
+  enabled: true
+  replicas: 3  # Increased for high availability
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1000m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  persistence:
+    enabled: false  # Changed to false to use emptyDir
+    size: 20Gi
+  config:
+    processRoles: "broker,controller"
+    controllerQuorumVoters: "0@kafka-0.kafka.kafka-k8s.svc.cluster.local:29093,1@kafka-1.kafka.kafka-k8s.svc.cluster.local:29093,2@kafka-2.kafka.kafka-k8s.svc.cluster.local:29093"
+    listeners: "PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093,PLAINTEXT_HOST://0.0.0.0:9092"
+    listenerSecurityProtocolMap: "PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT,CONTROLLER:PLAINTEXT"
+    controllerListenerNames: "CONTROLLER"
+    interBrokerListenerName: "PLAINTEXT"
+    offsetsTopicReplicationFactor: 3
+    transactionStateLogReplicationFactor: 3
+    transactionStateLogMinIsr: 2
+    clusterId: "MkU3OEVBNTcwNTJENDM2Qk"
+
+schemaRegistry:
+  enabled: true
+  replicas: 2  # Increased for high availability
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  config:
+    hostName: schema-registry
+
+kafkaUI:
+  enabled: true
+  replicas: 1
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "200m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+flink:
+  enabled: true
+  jobManager:
+    replicas: 1
+    resources:
+      requests:
+        memory: "3Gi"
+        cpu: "1000m"
+      limits:
+        memory: "6Gi"
+        cpu: "2000m"
+  taskManager:
+    replicas: 2  # Increased for better parallelism
+    resources:
+      requests:
+        memory: "3Gi"
+        cpu: "1000m"
+      limits:
+        memory: "6Gi"
+        cpu: "2000m" 
