@@ -123,6 +123,11 @@ The system consists of:
    python src/main/python/data_generator.py
    ```
 
+4. **Flink Job Submission**
+   ```bash
+   flink run -m localhost:8082 -c org.example.StreamingAnalyticsJob  target/Flink-Kafka-Helm-1.0-SNAPSHOT.jar
+   ```
+
 ## Monitoring
 
 - Flink Web UI: Access through port-forwarding
