@@ -131,21 +131,6 @@ The system consists of:
 ## Monitoring
 
 - Flink Web UI: Access through port-forwarding
-- Kafka metrics: Available through JMX
-- Kubernetes dashboard for pod monitoring
+- Kafka Web UI: Access through port-forwarding
 
-## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Support
-
-For support, please open an issue in the GitHub repository.
